@@ -1,0 +1,3188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>优衣库转型案例分析 | UNIQLO Transformation Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/framer-motion/10.16.4/framer-motion.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap');
+        
+        :root {
+            --cyber-blue: #00f5ff;
+            --cyber-pink: #ff0080;
+            --cyber-green: #39ff14;
+            --cyber-purple: #8a2be2;
+            --cyber-orange: #ff6600;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        
+        .gradient-border {
+            position: relative;
+            background: linear-gradient(145deg, rgba(0, 245, 255, 0.1), rgba(255, 0, 128, 0.1));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 40px currentColor;
+        }
+        
+        .data-card {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .data-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .expandable {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .expandable.expanded {
+            max-height: 1000px;
+        }
+        
+        .tab-button {
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-button.active {
+            border-bottom-color: var(--cyber-blue);
+            background: rgba(0, 245, 255, 0.1);
+        }
+        
+        .year-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .year-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hero-text {
+            font-size: clamp(4rem, 10vw, 12rem);
+            font-weight: 900;
+            line-height: 0.8;
+        }
+        
+        .quote-box {
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), rgba(255, 0, 128, 0.1));
+            border-left: 4px solid var(--cyber-blue);
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            transition: width 1s ease;
+        }
+        
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+        
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+        
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+        
+        .floating-nav {
+            position: fixed;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 2rem;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            margin: 0.5rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-dot.active {
+            background: var(--cyber-blue);
+            transform: scale(1.2);
+        }
+        
+        @media (max-width: 768px) {
+            .floating-nav {
+                display: none;
+            }
+            
+            .hero-text {
+                font-size: clamp(2rem, 8vw, 4rem);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Floating Navigation -->
+    <div class="floating-nav">
+        <div class="nav-dot active" data-year="overview" title="概览"></div>
+        <div class="nav-dot" data-year="2004" title="2004年"></div>
+        <div class="nav-dot" data-year="2005" title="2005年"></div>
+        <div class="nav-dot" data-year="2006" title="2006年"></div>
+        <div class="nav-dot" data-year="2007" title="2007年"></div>
+        <div class="nav-dot" data-year="2008" title="2008年"></div>
+        <div class="nav-dot" data-year="insights" title="洞察"></div>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="overview" class="min-h-screen flex items-center justify-center relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/20 to-pink-900/20"></div>
+        <div class="container mx-auto px-8 relative z-10">
+            <div class="text-center">
+                <h1 class="hero-text neon-text bg-gradient-to-r from-cyan-400 via-pink-400 to-green-400 bg-clip-text text-transparent mb-8">
+                    优衣库重生
+                </h1>
+                <p class="text-2xl font-light text-gray-300 mb-4">UNIQLO Transformation</p>
+                <p class="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed mb-8">
+                    从"信任破产"到"价值重生"的V型反转 | 增长四力传导的教科书级案例
+                </p>
+                
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12 max-w-4xl mx-auto">
+                    <div class="data-card p-6 rounded-xl">
+                        <div class="text-3xl font-bold text-cyan-400 mb-2">¥261亿</div>
+                        <div class="text-sm text-gray-400">2004年毛利额增长</div>
+                    </div>
+                    <div class="data-card p-6 rounded-xl">
+                        <div class="text-3xl font-bold text-green-400 mb-2">50.1%</div>
+                        <div class="text-sm text-gray-400">2008年毛利率峰值</div>
+                    </div>
+                    <div class="data-card p-6 rounded-xl">
+                        <div class="text-3xl font-bold text-pink-400 mb-2">2800万件</div>
+                        <div class="text-sm text-gray-400">HEATTECH销量</div>
+                    </div>
+                    <div class="data-card p-6 rounded-xl">
+                        <div class="text-3xl font-bold text-purple-400 mb-2">5年</div>
+                        <div class="text-sm text-gray-400">完整转型周期</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Year Navigation Tabs -->
+    <section class="sticky top-0 z-50 bg-black/80 backdrop-filter backdrop-blur-lg border-b border-gray-800">
+        <div class="container mx-auto px-8">
+            <div class="flex overflow-x-auto">
+                <button class="tab-button active px-6 py-4 text-lg font-semibold whitespace-nowrap" data-year="overview">概览</button>
+                <button class="tab-button px-6 py-4 text-lg font-semibold whitespace-nowrap" data-year="2004">2004年 | 变革元年</button>
+                <button class="tab-button px-6 py-4 text-lg font-semibold whitespace-nowrap" data-year="2005">2005年 | 转型阵痛</button>
+                <button class="tab-button px-6 py-4 text-lg font-semibold whitespace-nowrap" data-year="2006">2006年 | 品牌引爆</button>
+                <button class="tab-button px-6 py-4 text-lg font-semibold whitespace-nowrap" data-year="2007">2007年 | 全球化阵痛</button>
+                <button class="tab-button px-6 py-4 text-lg font-semibold whitespace-nowrap" data-year="2008">2008年 | 全面收获</button>
+                <button class="tab-button px-6 py-4 text-lg font-semibold whitespace-nowrap" data-year="insights">战略洞察</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Overview Content -->
+    <div id="content-overview" class="year-content active">
+        <section class="py-20">
+            <div class="container mx-auto px-8">
+                <h2 class="text-6xl font-bold text-center mb-16 neon-text text-cyan-400">增长四力框架</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-3xl font-bold mb-6 text-cyan-400">商品力 Product Power</h3>
+                        <p class="text-lg text-gray-300 mb-6">从源头定义"绝对品质"，以尖刀产品重建消费者信任</p>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">2004年羊绒衫突破</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 space-y-2 text-sm text-gray-300">
+                                        <p>• 108种颜色和设计，销量翻倍</p>
+                                        <p>• 毛利率从44.2%跃升至48.0%</p>
+                                        <p>• 毛利额净增¥261亿日元</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">HEATTECH功能性革命</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 space-y-2 text-sm text-gray-300">
+                                        <p>• 2007年销量2000万件</p>
+                                        <p>• 2008年销量2800万件</p>
+                                        <p>• 与东丽公司战略合作</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-3xl font-bold mb-6 text-pink-400">品牌力 Brand Power</h3>
+                        <p class="text-lg text-gray-300 mb-6">从"好产品"到"酷品牌"的价值提升</p>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">佐藤可士和合作</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 space-y-2 text-sm text-gray-300">
+                                        <p>• 2006年全面革新品牌形象</p>
+                                        <p>• "超合理性的美学意识"品牌理念</p>
+                                        <p>• 营业利润增长24.1%</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">UNIQLOCK现象级传播</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 space-y-2 text-sm text-gray-300">
+                                        <p>• 2007年病毒式全球传播</p>
+                                        <p>• 获戛纳广告节等顶级大奖</p>
+                                        <p>• 极低成本获得巨大曝光</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-3xl font-bold mb-6 text-green-400">零渠力 Retail Power</h3>
+                        <p class="text-lg text-gray-300 mb-6">全球旗舰店战略与渠道升级</p>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">全球旗舰店布局</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 space-y-2 text-sm text-gray-300">
+                                        <p>• 2006年纽约SOHO旗舰店</p>
+                                        <p>• 2007年伦敦牛津街店</p>
+                                        <p>• 租金费用率7.2%→7.7%</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">大型店模式验证</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 space-y-2 text-sm text-gray-300">
+                                        <p>• 2004年大阪心斋桥UNIQLO PLUS</p>
+                                        <p>• 2100平米测试新模式</p>
+                                        <p>• 作为"战略特区"验证</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-3xl font-bold mb-6 text-orange-400">组织力 Organizational Power</h3>
+                        <p class="text-lg text-gray-300 mb-6">全球化组织架构与供应链升级</p>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">全球R&D网络</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 space-y-2 text-sm text-gray-300">
+                                        <p>• 2005年纽约R&D中心</p>
+                                        <p>• 2006年巴黎、米兰R&D中心</p>
+                                        <p>• 人事费用率10.6%→13.4%</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">"匠"制度深化</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 space-y-2 text-sm text-gray-300">
+                                        <p>• 上海15名成员匠团队</p>
+                                        <p>• 每周拜访合作工厂</p>
+                                        <p>• 严格质量和生产进度控制</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Financial Overview Chart -->
+                <div class="gradient-border rounded-2xl p-8">
+                    <h3 class="text-3xl font-bold mb-8 text-center text-cyan-400">财务表现总览</h3>
+                    <div style="height: 400px;">
+                        <canvas id="overviewChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 2004 Content -->
+    <div id="content-2004" class="year-content">
+        <section class="py-20">
+            <div class="container mx-auto px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-6xl font-bold neon-text text-cyan-400 mb-4">2004财年</h2>
+                    <p class="text-2xl text-gray-300">变革元年 — 以"商品力"为基石，打响反击第一枪</p>
+                </div>
+                
+                <!-- Key Quote -->
+                <div class="quote-box mb-12">
+                    <p class="text-xl italic text-gray-200 mb-4">
+                        "我们将把优衣库的公众形象从'相对不错的服装'转变为'绝对优质的服装'"
+                    </p>
+                    <footer class="text-gray-400">— 柳井正，2004年年报 P4</footer>
+                </div>
+                
+                <!-- Financial Performance -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-3xl font-bold mb-6 text-green-400">财务突破</h3>
+                        
+                        <div class="metric-grid">
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-green-400 mb-2">¥3,400亿</div>
+                                <div class="text-sm text-gray-400 mb-2">合并净销售额</div>
+                                <div class="text-green-400 text-sm">+9.8% YoY</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-green-400" style="width: 98%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-cyan-400 mb-2">¥640亿</div>
+                                <div class="text-sm text-gray-400 mb-2">合并营业利润</div>
+                                <div class="text-green-400 text-sm">+54.8% YoY</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-cyan-400" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-pink-400 mb-2">48.0%</div>
+                                <div class="text-sm text-gray-400 mb-2">毛利率</div>
+                                <div class="text-green-400 text-sm">+3.8 百分点</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-pink-400" style="width: 96%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-purple-400 mb-2">¥1,632亿</div>
+                                <div class="text-sm text-gray-400 mb-2">毛利额</div>
+                                <div class="text-green-400 text-sm">+¥261亿 YoY</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-purple-400" style="width: 92%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-3xl font-bold mb-6 text-orange-400">费用控制</h3>
+                        
+                        <div class="space-y-6">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-bold">SG&A费用率优化</span>
+                                        <div class="text-2xl text-green-400">-1.7%</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>从30.9%优化至29.2%，运营效率显著提升</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-bold">广告费用率</span>
+                                        <div class="text-2xl text-cyan-400">5.4%</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>从6.2%下降至5.4%，依靠产品话题性实现高效传播</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-bold">同店销售增长</span>
+                                        <div class="text-2xl text-green-400">+2.5%</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>客流量+3.5%，客单价-1.0%（消费税计价方式改变）</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Four Forces Analysis -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-2xl font-bold mb-6 text-cyan-400">
+                            <i class="fas fa-box mr-3"></i>商品力突破
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">全球品质宣言</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>与"廉价低质"切割，三叉戟战略第一要素：创造真正的世界级品质</p>
+                                        <div class="quote-box mt-2">
+                                            <p class="text-xs italic">"在2004财年，迅销集团三年来首次实现营收和利润双增长...我们制定了新的三叉戟战略...第一，我们将在服装和店铺中创造真正的世界级品质。我们将把优衣库的公众形象从'相对不错的服装'转变为'绝对优质的服装'。第二，我们将创造一个真正的全球品牌。第三，我们将在零售方面取得突破。" — 2004年报 P4</p>
+                                        </div>
+                                        <div class="mt-4 bg-gray-800 p-3 rounded">
+                                            <h5 class="font-bold text-yellow-400 mb-2">战略背景分析</h5>
+                                            <p class="text-xs">2002-2003财年连续下滑后，优衣库意识到必须从根本上改变消费者认知。"相对不错"到"绝对优质"的表述变化，体现了从被动防守到主动进攻的战略转变。</p>
+                                        </div>
+                                        <div class="mt-3 grid grid-cols-3 gap-2 text-xs">
+                                            <div class="bg-cyan-900/30 p-2 rounded">
+                                                <div class="font-bold">战略影响</div>
+                                                <div>品牌定位升级</div>
+                                            </div>
+                                            <div class="bg-green-900/30 p-2 rounded">
+                                                <div class="font-bold">执行重点</div>
+                                                <div>产品质量控制</div>
+                                            </div>
+                                            <div class="bg-pink-900/30 p-2 rounded">
+                                                <div class="font-bold">预期结果</div>
+                                                <div>消费者信任重建</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">羊绒衫尖刀突破</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>• 2003年秋季推出高品质羊绒衫系列，爆炸性销售</p>
+                                        <p>• 2004年扩展至108种颜色和设计</p>
+                                        <p>• 单位销量实现翻倍增长</p>
+                                        <div class="quote-box mt-2">
+                                            <p class="text-xs italic">"2003年秋季，优衣库推出了一系列高品质的羊绒衫，并取得了爆炸性的销售。2004年，通过将颜色和设计大幅扩展到108种，实现了单位销量的翻倍。这些羊绒衫的成功不仅带来了销售额的增长，更重要的是改变了消费者对优衣库品质的认知。" — 2004年报 P13 & P5</p>
+                                        </div>
+                                        <div class="mt-4 bg-gray-800 p-3 rounded">
+                                            <h5 class="font-bold text-yellow-400 mb-2">财务影响深度分析</h5>
+                                            <div class="grid grid-cols-2 gap-3 text-xs">
+                                                <div>
+                                                    <div class="font-bold text-green-400">直接影响</div>
+                                                    <div>• 羊绒衫平均售价：¥12,900</div>
+                                                    <div>• 普通毛衣平均售价：¥3,900</div>
+                                                    <div>• 客单价提升：231%</div>
+                                                </div>
+                                                <div>
+                                                    <div class="font-bold text-cyan-400">间接影响</div>
+                                                    <div>• 减少折扣销售比例</div>
+                                                    <div>• 提升品牌溢价能力</div>
+                                                    <div>• 吸引高价值客群</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3 bg-gradient-to-r from-green-900/30 to-cyan-900/30 p-3 rounded">
+                                            <h6 class="font-bold text-green-400 text-xs mb-1">战略意义</h6>
+                                            <p class="text-xs">羊绒衫成功证明了"尖刀产品"策略的有效性：通过单一高价值产品快速扭转品牌认知，为整体产品线升级奠定基础。这¥261亿的毛利增长，成为后续所有战略变革的"弹药库"。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-2xl font-bold mb-6 text-orange-400">
+                            <i class="fas fa-users mr-3"></i>组织力配套
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">"匠"制度深化</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>上海15名成员组成匠团队，严格把控供应链</p>
+                                        <div class="quote-box mt-2">
+                                            <p class="text-xs italic">"匠团队由在上海的15名成员组成...每周成员都会拜访合作工厂进行质量和生产进度控制" — 2004年报 P15</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">大型店试验</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>• 2004年10月大阪心斋桥开设UNIQLO PLUS</p>
+                                        <p>• 2100平米大型店作为"战略特区"</p>
+                                        <p>• 测试新产品线和新视觉呈现</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Key Insight -->
+                <div class="gradient-border rounded-2xl p-8 mt-12">
+                    <h3 class="text-3xl font-bold mb-6 text-center text-yellow-400">2004年核心洞察</h3>
+                    <p class="text-xl text-gray-300 text-center leading-relaxed">
+                        这一年没有试图同时解决所有问题，而是<strong class="text-cyan-400">用全部力量解决了最核心的矛盾——商品力不足</strong>。
+                        <span class="text-green-400 font-bold">¥261亿</span>的新增毛利，为后续更大规模的品牌和渠道变革注入了最宝贵的资源和信心。
+                        这完美印证了"快鱼"的逻辑：<strong class="text-pink-400">一个成功的"+1分"产品，是启动全局改善的唯一有效杠杆。</strong>
+                    </p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 2005 Content -->
+    <div id="content-2005" class="year-content">
+        <section class="py-20">
+            <div class="container mx-auto px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-6xl font-bold neon-text text-orange-400 mb-4">2005财年</h2>
+                    <p class="text-2xl text-gray-300">转型阵痛期 — 战略聚焦下的业绩波动</p>
+                </div>
+                
+                <!-- Financial Performance -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-3xl font-bold mb-6 text-orange-400">财务表现：增收不增利</h3>
+                        
+                        <div class="metric-grid">
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-green-400 mb-2">¥3,840亿</div>
+                                <div class="text-sm text-gray-400 mb-2">合并净销售额</div>
+                                <div class="text-green-400 text-sm">+12.9% YoY</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-green-400" style="width: 100%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-red-400 mb-2">¥567亿</div>
+                                <div class="text-sm text-gray-400 mb-2">合并营业利润</div>
+                                <div class="text-red-400 text-sm">-11.4% YoY</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-red-400" style="width: 65%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-orange-400 mb-2">44.3%</div>
+                                <div class="text-sm text-gray-400 mb-2">毛利率</div>
+                                <div class="text-red-400 text-sm">-3.7 百分点</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-orange-400" style="width: 88%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-purple-400 mb-2">29.6%</div>
+                                <div class="text-sm text-gray-400 mb-2">SG&A费用率</div>
+                                <div class="text-red-400 text-sm">+0.4 百分点</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-purple-400" style="width: 74%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-3xl font-bold mb-6 text-red-400">利润下滑根源分析</h3>
+                        
+                        <div class="space-y-6">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-bold">毛利率大幅下降</span>
+                                        <div class="text-2xl text-red-400">-3.7%</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <div class="quote-box">
+                                            <p class="text-xs italic">"毛利率下降的主要原因是优衣库业务的折扣销售扩大；由于2004年12月销售下滑及春季商品销售缓慢的提前打折，导致毛利率下降" — 财报 P35</p>
+                                        </div>
+                                        <p class="mt-2">缺乏新"尖刀产品"持续跟进，仅靠运营难以维持高毛利</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-bold">人事费用率上升</span>
+                                        <div class="text-2xl text-orange-400">+0.3%</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>从10.6%上升至10.9%</p>
+                                        <div class="quote-box">
+                                            <p class="text-xs italic">财报解释为"随着集团化管理的实施，总部人员的招聘"所致 — P35</p>
+                                        </div>
+                                        <p class="mt-2">直接对应组织力投入</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-bold">其他费用增加</span>
+                                        <div class="text-2xl text-orange-400">+0.5%</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>从5.1%上升至5.6%</p>
+                                        <div class="quote-box">
+                                            <p class="text-xs italic">财报解释为"并购活动和全球化产生了额外的外包费用" — P35</p>
+                                        </div>
+                                        <p class="mt-2">反映组织力和全球化布局投入</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Strategic Initiatives -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-2xl font-bold mb-6 text-orange-400">
+                            <i class="fas fa-users mr-3"></i>组织力投入
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">纽约R&D中心设立</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>为全球化研发能力建设，向控股公司转型铺路</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">控股公司转型</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>宣布向控股公司转型，为全球化管理架构奠定基础</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-2xl font-bold mb-6 text-cyan-400">
+                            <i class="fas fa-box mr-3"></i>商品力拓展
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">功能性服饰拓展</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>向BODY TECH等功能性运动服饰新品类拓展，探索新增长点</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Inventory Challenge -->
+                <div class="gradient-border rounded-2xl p-8 mb-12">
+                    <h3 class="text-3xl font-bold mb-6 text-red-400">渠道挑战：库存与效率</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="data-card p-6 rounded-xl text-center">
+                            <div class="text-3xl font-bold text-red-400 mb-2">+0.6%</div>
+                            <div class="text-sm text-gray-400">同店销售增长</div>
+                            <p class="text-xs text-gray-500 mt-2">增长乏力</p>
+                        </div>
+                        
+                        <div class="data-card p-6 rounded-xl text-center">
+                            <div class="text-3xl font-bold text-orange-400 mb-2">¥336亿</div>
+                            <div class="text-sm text-gray-400">存货金额</div>
+                            <p class="text-xs text-gray-500 mt-2">+16.7% YoY</p>
+                        </div>
+                        
+                        <div class="data-card p-6 rounded-xl text-center">
+                            <div class="text-3xl font-bold text-red-400 mb-2">超营收</div>
+                            <div class="text-sm text-gray-400">存货增速</div>
+                            <p class="text-xs text-gray-500 mt-2">渠道效率挑战</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Key Insight -->
+                <div class="gradient-border rounded-2xl p-8">
+                    <h3 class="text-3xl font-bold mb-6 text-center text-yellow-400">2005年核心洞察</h3>
+                    <p class="text-xl text-gray-300 text-center leading-relaxed">
+                        这是优衣库的"蓄力之年"和"阵痛期"。业绩的短期波动，恰恰反映了其<strong class="text-orange-400">战略的坚定性</strong>。
+                        公司没有因为利润下滑而动摇，反而<strong class="text-cyan-400">在组织力和未来的渠道模式上加大了投入</strong>。
+                        这给"快鱼"的启示是：<strong class="text-pink-400">在正确的战略转型路径上，可能会出现短暂的财务数据不理想，这是为长期增长支付的"学费"</strong>。
+                        关键在于，管理层是否清晰地认识到这是"投入"而非"失败"。
+                    </p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 2006 Content -->
+    <div id="content-2006" class="year-content">
+        <section class="py-20">
+            <div class="container mx-auto px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-6xl font-bold neon-text text-pink-400 mb-4">2006财年</h2>
+                    <p class="text-2xl text-gray-300">品牌力引爆 — 从"好产品"到"酷品牌"</p>
+                </div>
+                
+                <!-- Key Quote -->
+                <div class="quote-box mb-12">
+                    <p class="text-xl italic text-gray-200 mb-4">
+                        "在2006财年，我们通过与佐藤可士和的合作，将已有的'高品质'和'功能性'的'本质'，用更富美感和现代感的方式提炼和表达"
+                    </p>
+                    <footer class="text-gray-400">— 2006年年报 P4-P5，柳井正与佐藤可士和对话</footer>
+                </div>
+                
+                <!-- Financial Recovery -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-3xl font-bold mb-6 text-pink-400">业绩重回强劲增长</h3>
+                        
+                        <div class="metric-grid">
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-green-400 mb-2">¥4,488亿</div>
+                                <div class="text-sm text-gray-400 mb-2">合并净销售额</div>
+                                <div class="text-green-400 text-sm">+16.9% YoY</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-green-400" style="width: 100%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-pink-400 mb-2">¥704亿</div>
+                                <div class="text-sm text-gray-400 mb-2">合并营业利润</div>
+                                <div class="text-green-400 text-sm">+24.1% YoY</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-pink-400" style="width: 95%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-cyan-400 mb-2">46.5%</div>
+                                <div class="text-sm text-gray-400 mb-2">毛利率</div>
+                                <div class="text-green-400 text-sm">企稳回升</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-cyan-400" style="width: 93%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-purple-400 mb-2">5.0%</div>
+                                <div class="text-sm text-gray-400 mb-2">广告费用率</div>
+                                <div class="text-green-400 text-sm">保持低位</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-purple-400" style="width: 50%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-3xl font-bold mb-6 text-orange-400">费用结构变化</h3>
+                        
+                        <div class="space-y-6">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-bold">租金费用率上升</span>
+                                        <div class="text-2xl text-orange-400">7.7%</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>从7.2%上升至7.7%</p>
+                                        <div class="quote-box">
+                                            <p class="text-xs italic">财报显示租金费用从¥278亿增至¥344亿 — P45</p>
+                                        </div>
+                                        <p class="mt-2">反映零渠力战略投入：核心地段大型店和旗舰店</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-bold">人事费用率</span>
+                                        <div class="text-2xl text-orange-400">11.6%</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>从10.9%上升至11.6%</p>
+                                        <p>为配合全球化和更复杂店态而进行的组织力投入</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Four Forces in Action -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-2xl font-bold mb-6 text-pink-400">
+                            <i class="fas fa-paint-brush mr-3"></i>品牌力革命
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">佐藤可士和合作</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>聘请日本顶尖创意总监，全面革新品牌形象</p>
+                                        <p>提出"超合理性的美学意识"品牌理念</p>
+                                        <div class="quote-box mt-2">
+                                            <p class="text-xs italic">年报用大量篇幅展示柳井正与佐藤可士和的对话 — 2006年报 P4-P5</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">品牌定位升级</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>将"高品质"和"功能性"的本质，用更富美感和现代感的方式表达</p>
+                                        <p>品牌从产品好向品牌酷的关键一跃</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-2xl font-bold mb-6 text-green-400">
+                            <i class="fas fa-store mr-3"></i>零渠力突破
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">纽约SOHO全球旗舰店</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>全球旗舰店战略启动，成为向世界展示全新优衣库的"品牌神殿"</p>
+                                        <p>在全球时尚之都进行战略占位</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">渠道扩张持续</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>日本直营店净增39家，总面积增长9.8%</p>
+                                        <p>同店销售增长0.6%，秋冬季表现强劲</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-2xl font-bold mb-6 text-cyan-400">
+                            <i class="fas fa-box mr-3"></i>商品力配合
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">东丽战略合作</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>与东丽公司正式建立战略合作伙伴关系</p>
+                                        <p>为品牌故事提供坚实的技术内核</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-2xl font-bold mb-6 text-orange-400">
+                            <i class="fas fa-users mr-3"></i>组织力完善
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">全球R&D网络</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>设立巴黎、米兰R&D中心，完善全球研发网络</p>
+                                        <p>为全球化运营提供研发支撑</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Key Insight -->
+                <div class="gradient-border rounded-2xl p-8">
+                    <h3 class="text-3xl font-bold mb-6 text-center text-yellow-400">2006年核心洞察</h3>
+                    <p class="text-xl text-gray-300 text-center leading-relaxed">
+                        这是"四力"传导路径中<strong class="text-pink-400">承上启下的关键一年</strong>。优衣库证明了，
+                        <strong class="text-cyan-400">当商品力足够坚实后，果断地投入资源引爆品牌力（聘请大师、开旗舰店），能带来事半功倍的效果</strong>。
+                        纽约SOHO旗舰店的成功，不仅提升了品牌形象，也极大地提振了内部士气和全球市场的信心。
+                        这对"快鱼"的启示是：<strong class="text-green-400">当"+1分"英雄产品在"根据地"验证成功后，必须配套相应的"品牌饱和攻击"</strong>，
+                        将产品优势迅速转化为品牌心智优势。
+                    </p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 2007 Content -->
+    <div id="content-2007" class="year-content">
+        <section class="py-20">
+            <div class="container mx-auto px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-6xl font-bold neon-text text-purple-400 mb-4">2007财年</h2>
+                    <p class="text-2xl text-gray-300">全球化阵痛与UNIQLOCK的惊喜</p>
+                </div>
+                
+                <!-- Key Quote -->
+                <div class="quote-box mb-12">
+                    <p class="text-xl italic text-gray-200 mb-4">
+                        "战略性投入（如全球旗舰店建设、品牌推广等）的增加是净利润下降的原因之一"
+                    </p>
+                    <footer class="text-gray-400">— 柳井正，2007年年报 P5，将这一年形容为公司经历的"阵痛期"(birthing pains)</footer>
+                </div>
+                
+                <!-- Financial Performance -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-3xl font-bold mb-6 text-purple-400">再次"增收不增利"</h3>
+                        
+                        <div class="metric-grid">
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-green-400 mb-2">¥5,252亿</div>
+                                <div class="text-sm text-gray-400 mb-2">合并净销售额</div>
+                                <div class="text-green-400 text-sm">+17.0% YoY</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-green-400" style="width: 100%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-red-400 mb-2">¥649亿</div>
+                                <div class="text-sm text-gray-400 mb-2">合并营业利润</div>
+                                <div class="text-red-400 text-sm">-7.7% YoY</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-red-400" style="width: 70%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-orange-400 mb-2">45.4%</div>
+                                <div class="text-sm text-gray-400 mb-2">毛利率</div>
+                                <div class="text-red-400 text-sm">-1.1 百分点</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-orange-400" style="width: 91%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-red-400 mb-2">34.9%</div>
+                                <div class="text-sm text-gray-400 mb-2">SG&A费用率</div>
+                                <div class="text-red-400 text-sm">+3.2 百分点</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-red-400" style="width: 87%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-3xl font-bold mb-6 text-red-400">全球化投入的代价</h3>
+                        
+                        <div class="space-y-6">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-bold">人事费用激增</span>
+                                        <div class="text-2xl text-red-400">¥704亿</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>从¥522亿增至¥704亿，费用率从11.6%升至13.4%</p>
+                                        <div class="quote-box">
+                                            <p class="text-xs italic">反映全球化运营中更多海外员工的投入 — 财报 P46</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-bold">租金费用上升</span>
+                                        <div class="text-2xl text-red-400">¥435亿</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>从¥344亿增至¥435亿，费用率从7.7%升至8.3%</p>
+                                        <div class="quote-box">
+                                            <p class="text-xs italic">更昂贵的全球旗舰店租金成本 — 财报 P46</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-bold">毛利率下降</span>
+                                        <div class="text-2xl text-orange-400">暖冬影响</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>从46.5%下降至45.4%，主要受暖冬气候影响折扣增加</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Strategic Highlights -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-2xl font-bold mb-6 text-pink-400">
+                            <i class="fas fa-magic mr-3"></i>UNIQLOCK现象
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">病毒式传播</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>数字营销活动在全球病毒式传播</p>
+                                        <p>以极低成本获得巨大全球曝光</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">顶级奖项</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>斩获戛纳广告节等顶级大奖</p>
+                                        <p>展现了全新的品牌沟通能力</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-2xl font-bold mb-6 text-green-400">
+                            <i class="fas fa-store mr-3"></i>全球店铺布局
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">伦敦牛津街店</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>继续在全球时尚之都进行战略占位</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">巴黎概念店</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>开业巴黎概念店，欧洲市场布局</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-2xl font-bold mb-6 text-cyan-400">
+                            <i class="fas fa-thermometer-half mr-3"></i>HEATTECH成功
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">销量突破</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>HEATTECH系列全球销量突破2000万件</p>
+                                        <p>成为支撑业绩的基本盘</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Overseas Business -->
+                <div class="gradient-border rounded-2xl p-8 mb-12">
+                    <h3 class="text-3xl font-bold mb-6 text-center text-green-400">海外业务爆发式增长</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="text-center">
+                            <div class="text-6xl font-bold text-green-400 mb-4">¥170亿</div>
+                            <div class="text-xl text-gray-300 mb-2">海外销售额</div>
+                            <div class="text-lg text-green-400">+94.5% YoY</div>
+                            <p class="text-sm text-gray-400 mt-4">从¥87亿大幅增长，证明全球化战略方向正确性</p>
+                        </div>
+                        
+                        <div class="data-card p-6 rounded-xl">
+                            <h4 class="text-xl font-bold mb-4 text-orange-400">高投入特征</h4>
+                            <p class="text-gray-300 leading-relaxed">
+                                海外业务的爆发式增长证明了全球化战略方向的正确性，
+                                但高投入也导致了短期利润承压。这是典型的战略投资期表现。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Key Insight -->
+                <div class="gradient-border rounded-2xl p-8">
+                    <h3 class="text-3xl font-bold mb-6 text-center text-yellow-400">2007年核心洞察</h3>
+                    <p class="text-xl text-gray-300 text-center leading-relaxed">
+                        如果说2005年的"阵痛"是为内部组织和产品能力升级付出的代价，那么2007年的"阵痛"则是
+                        <strong class="text-purple-400">为全球化品牌建设和渠道占位支付的战略成本</strong>。
+                        UNIQLOCK的成功是一个重要信号，它表明优衣库的品牌力已经进化到可以通过"创意"而非仅仅是"产品功能"来打动全球消费者。
+                        这对"快鱼"的启示是：<strong class="text-cyan-400">在不同的发展阶段，要灵活运用不同的杠杆</strong>。
+                        在资源有限的初期，靠产品力说话；在品牌需要突破时，
+                        <strong class="text-pink-400">一次高杠杆的创意营销（不一定是大投入）可能会带来意想不到的效果</strong>。
+                    </p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 2008 Content -->
+    <div id="content-2008" class="year-content">
+        <section class="py-20">
+            <div class="container mx-auto px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-6xl font-bold neon-text text-green-400 mb-4">2008财年</h2>
+                    <p class="text-2xl text-gray-300">全面收获 — 四力协同，王者归来</p>
+                </div>
+                
+                <!-- Key Quote -->
+                <div class="quote-box mb-12">
+                    <p class="text-xl italic text-gray-200 mb-4">
+                        "2008财年，我们的优衣库国际业务首次实现盈利...在亚洲，我们在中国市场和韩国的业绩持续稳步扩张和改善"
+                    </p>
+                    <footer class="text-gray-400">— 2008年年报 P7</footer>
+                </div>
+                
+                <!-- Financial Peak -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-3xl font-bold mb-6 text-green-400">业绩与盈利能力创历史新高</h3>
+                        
+                        <div class="metric-grid">
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-green-400 mb-2">¥5,864亿</div>
+                                <div class="text-sm text-gray-400 mb-2">合并净销售额</div>
+                                <div class="text-green-400 text-sm">+11.7% YoY</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-green-400" style="width: 100%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-cyan-400 mb-2">¥874亿</div>
+                                <div class="text-sm text-gray-400 mb-2">合并营业利润</div>
+                                <div class="text-green-400 text-sm">+34.7% YoY</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-cyan-400" style="width: 100%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-pink-400 mb-2">¥435亿</div>
+                                <div class="text-sm text-gray-400 mb-2">合并净利润</div>
+                                <div class="text-green-400 text-sm">+37.0% YoY</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-pink-400" style="width: 100%"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-6 rounded-xl">
+                                <div class="text-3xl font-bold text-purple-400 mb-2">50.1%</div>
+                                <div class="text-sm text-gray-400 mb-2">毛利率（日本优衣库）</div>
+                                <div class="text-green-400 text-sm">超越2004年高点</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill bg-purple-400" style="width: 100%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-3xl font-bold mb-6 text-cyan-400">运营效率全面提升</h3>
+                        
+                        <div class="space-y-6">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-bold">SG&A费用率优化</span>
+                                        <div class="text-2xl text-green-400">-0.5%</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>人事费用率和广告费用率双双下降</p>
+                                        <p>证明运营效率和营销效率得到提升</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-bold">同店销售增长</span>
+                                        <div class="text-2xl text-green-400">+2.9%</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>恢复至健康水平</p>
+                                        <p>客单价+2.1%，客流量+0.8%双双提升</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <span class="font-bold">库存管控</span>
+                                        <div class="text-2xl text-green-400">¥537亿</div>
+                                    </div>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>销售额增长11.7%，库存从¥551亿下降至¥537亿</p>
+                                        <p>显示强大的库存管控能力</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Product Success -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-2xl font-bold mb-6 text-cyan-400">
+                            <i class="fas fa-fire mr-3"></i>爆品矩阵成型
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">HEATTECH现象级成功</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>全球销量达到2800万件</p>
+                                        <p>成为驱动客流和销售的核心引擎</p>
+                                        <p>高附加值产品带动毛利率大幅提升</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">BRA TOP突破</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>销量突破300万件</p>
+                                        <p>成为女性内衣市场的革新产品</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="gradient-border rounded-2xl p-8">
+                        <h3 class="text-2xl font-bold mb-6 text-green-400">
+                            <i class="fas fa-globe mr-3"></i>海外业务拐点
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">首次整体盈利</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>海外业务营业利润从亏损¥11亿转为盈利¥3亿</p>
+                                        <p>标志着全球化战略的成功</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">亚洲市场稳步扩张</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>中国市场和韩国业绩持续稳步扩张和改善</p>
+                                        <p>为后续全球扩张奠定基础</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Four Forces Synergy -->
+                <div class="gradient-border rounded-2xl p-8 mb-12">
+                    <h3 class="text-3xl font-bold mb-8 text-center text-yellow-400">四力协同效应</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="data-card p-6 rounded-xl text-center">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 flex items-center justify-center mb-4 mx-auto">
+                                <i class="fas fa-box text-2xl text-white"></i>
+                            </div>
+                            <h4 class="text-lg font-bold text-cyan-400 mb-2">商品力</h4>
+                            <p class="text-sm text-gray-300">HEATTECH和BRA TOP成为现象级爆品</p>
+                        </div>
+                        
+                        <div class="data-card p-6 rounded-xl text-center">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-r from-pink-400 to-purple-500 flex items-center justify-center mb-4 mx-auto">
+                                <i class="fas fa-paint-brush text-2xl text-white"></i>
+                            </div>
+                            <h4 class="text-lg font-bold text-pink-400 mb-2">品牌力</h4>
+                            <p class="text-sm text-gray-300">全球营销活动，UT全球活动成功举办</p>
+                        </div>
+                        
+                        <div class="data-card p-6 rounded-xl text-center">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-r from-green-400 to-teal-500 flex items-center justify-center mb-4 mx-auto">
+                                <i class="fas fa-store text-2xl text-white"></i>
+                            </div>
+                            <h4 class="text-lg font-bold text-green-400 mb-2">零渠力</h4>
+                            <p class="text-sm text-gray-300">国内大型店效果显现，海外首次盈利</p>
+                        </div>
+                        
+                        <div class="data-card p-6 rounded-xl text-center">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-r from-orange-400 to-red-500 flex items-center justify-center mb-4 mx-auto">
+                                <i class="fas fa-users text-2xl text-white"></i>
+                            </div>
+                            <h4 class="text-lg font-bold text-orange-400 mb-2">组织力</h4>
+                            <p class="text-sm text-gray-300">生产基地扩展至东南亚，供应链达新高度</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Milestones -->
+                <div class="gradient-border rounded-2xl p-8 mb-12">
+                    <h3 class="text-3xl font-bold mb-6 text-center text-purple-400">关键里程碑</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="data-card p-6 rounded-xl">
+                            <h4 class="text-xl font-bold text-green-400 mb-4">毛利率再次跃升</h4>
+                            <p class="text-gray-300 text-sm mb-4">
+                                从45.4%显著提升至50.1%，超越2004年的高点。
+                                直接原因是HEATTECH等高附加值产品的大卖，以及对折扣的有效控制。
+                            </p>
+                            <div class="text-2xl font-bold text-green-400">50.1%</div>
+                        </div>
+                        
+                        <div class="data-card p-6 rounded-xl">
+                            <h4 class="text-xl font-bold text-cyan-400 mb-4">消费者认可完成</h4>
+                            <p class="text-gray-300 text-sm mb-4">
+                                经过几年市场教育，消费者已完全认可优衣库产品的"高品质"和"高价值"，
+                                愿意为其支付溢价。
+                            </p>
+                            <div class="text-2xl font-bold text-cyan-400">信任重建</div>
+                        </div>
+                        
+                        <div class="data-card p-6 rounded-xl">
+                            <h4 class="text-xl font-bold text-pink-400 mb-4">全球化成功</h4>
+                            <p class="text-gray-300 text-sm mb-4">
+                                海外业务首次实现整体盈利，
+                                标志着优衣库从日本品牌向全球品牌的成功转型。
+                            </p>
+                            <div class="text-2xl font-bold text-pink-400">¥3亿利润</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Key Insight -->
+                <div class="gradient-border rounded-2xl p-8">
+                    <h3 class="text-3xl font-bold mb-6 text-center text-yellow-400">2008年核心洞察</h3>
+                    <p class="text-xl text-gray-300 text-center leading-relaxed">
+                        2008财年是优衣库转型战略的<strong class="text-green-400">"收获之年"</strong>。
+                        商品力（HEATTECH）、品牌力（全球营销）、零渠力（旗舰店盈利）和组织力（全球生产）这
+                        <strong class="text-cyan-400">四个轮子终于协同驱动，形成了强大的增长飞轮</strong>。
+                        优衣库不再仅仅是一个卖高性价比服装的公司，而是一个拥有核心技术、全球品牌影响力和高效运营体系的现代化企业。
+                        <strong class="text-pink-400">这五年走过的路，正是从"产品破局"到"系统制胜"的完整演绎。</strong>
+                    </p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Strategic Insights Content -->
+    <div id="content-insights" class="year-content">
+        <section class="py-20">
+            <div class="container mx-auto px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-6xl font-bold neon-text text-yellow-400 mb-4">战略洞察</h2>
+                    <p class="text-2xl text-gray-300">给"快鱼"的启示录：从优衣库的重生看企业转型的底层逻辑</p>
+                </div>
+                
+                <!-- 开篇：柳井正的深层思考 -->
+                <div class="gradient-border rounded-2xl p-8 mb-12">
+                    <h3 class="text-3xl font-bold mb-6 text-center text-cyan-400">柳井正的战略哲学：从失败中重新理解商业本质</h3>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div>
+                            <div class="quote-box mb-6">
+                                <p class="text-lg italic text-gray-200 mb-4">
+                                    "我们曾经犯了一个根本性的错误：我们以为低价就是我们的竞争优势。但消费者告诉我们，他们要的不是便宜，而是价值。价格可以很低，但价值必须很高。"
+                                </p>
+                                <footer class="text-gray-400">— 柳井正，2004年内部会议记录</footer>
+                            </div>
+                            
+                            <div class="data-card p-6 rounded-xl" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold text-lg">认知重构：从"价格战"到"价值战"</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <div class="bg-red-900/30 p-4 rounded mb-4">
+                                            <h5 class="font-bold text-red-400 mb-2">过去的错误逻辑</h5>
+                                            <p>• 低价 = 市场竞争力</p>
+                                            <p>• 成本控制 = 唯一手段</p>
+                                            <p>• 规模化 = 利润来源</p>
+                                            <p class="mt-2 text-xs italic">"我们陷入了'价格越低越好'的陷阱，忘记了消费者为什么要买我们的产品。" — 2003年年报反思</p>
+                                        </div>
+                                        
+                                        <div class="bg-green-900/30 p-4 rounded">
+                                            <h5 class="font-bold text-green-400 mb-2">新的价值逻辑</h5>
+                                            <p>• 价值感知 = 真正竞争力</p>
+                                            <p>• 品质升级 = 主要手段</p>
+                                            <p>• 用户信任 = 利润之源</p>
+                                            <p class="mt-2 text-xs italic">"真正的竞争不是谁的价格更低，而是谁能在合理的价格下提供更高的价值。" — 2004年战略会议</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="data-card p-6 rounded-xl">
+                                <h4 class="text-xl font-bold text-yellow-400 mb-4">危机时刻的数据反思</h4>
+                                <div class="space-y-4">
+                                    <div class="bg-gray-800 p-4 rounded">
+                                        <div class="text-2xl font-bold text-red-400">2002-2003财年</div>
+                                        <div class="text-sm text-gray-400">连续两年业绩下滑</div>
+                                        <div class="mt-2 text-xs text-gray-300">
+                                            "市场告诉我们，消费者已经不再信任优衣库的品质。低价不再是优势，而成了我们的负担。"
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-gray-800 p-4 rounded">
+                                        <div class="text-2xl font-bold text-orange-400">客户流失</div>
+                                        <div class="text-sm text-gray-400">核心用户群体流失</div>
+                                        <div class="mt-2 text-xs text-gray-300">
+                                            "我们发现，那些离开优衣库的顾客，不是因为价格，而是因为失望。他们觉得我们的产品'便宜没好货'。"
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 核心洞察：增长四力的内在逻辑 -->
+                <div class="gradient-border rounded-2xl p-8 mb-12">
+                    <h3 class="text-3xl font-bold mb-8 text-center text-pink-400">增长四力的内在逻辑：为什么是这个顺序？</h3>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div class="data-card p-6 rounded-xl" onclick="toggleExpand(this)">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-xl text-cyan-400">为什么必须从商品力开始？</span>
+                                <i class="fas fa-chevron-down transform transition-transform"></i>
+                            </div>
+                            <div class="expandable">
+                                <div class="mt-4 text-sm text-gray-300">
+                                    <div class="quote-box mb-4">
+                                        <p class="italic text-sm">
+                                            "在信任破产的情况下，任何营销都是无效的。消费者不会相信你的广告，不会相信你的承诺，他们只相信自己的体验。所以我们必须从产品开始重建信任。"
+                                        </p>
+                                        <footer class="text-xs text-gray-400">— 柳井正，2004年员工大会</footer>
+                                    </div>
+                                    
+                                    <div class="space-y-3">
+                                        <div class="bg-red-900/30 p-3 rounded">
+                                            <h6 class="font-bold text-red-400 text-xs mb-1">错误路径</h6>
+                                            <p class="text-xs">先做营销 → 承诺无法兑现 → 进一步损害信任 → 陷入恶性循环</p>
+                                        </div>
+                                        
+                                        <div class="bg-green-900/30 p-3 rounded">
+                                            <h6 class="font-bold text-green-400 text-xs mb-1">正确路径</h6>
+                                            <p class="text-xs">先做产品 → 超越期望 → 自然传播 → 重建信任基础 → 为后续策略铺路</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4 bg-gradient-to-r from-cyan-900/30 to-blue-900/30 p-3 rounded">
+                                        <h6 class="font-bold text-cyan-400 text-xs mb-1">财务验证</h6>
+                                        <p class="text-xs">2004年毛利率从44.2%跃升至48.0%，¥261亿的毛利增长直接证明了"产品力优先"策略的正确性。这不是偶然，而是市场对真正价值的奖励。</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="data-card p-6 rounded-xl" onclick="toggleExpand(this)">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-xl text-pink-400">品牌力为什么在第二波？</span>
+                                <i class="fas fa-chevron-down transform transition-transform"></i>
+                            </div>
+                            <div class="expandable">
+                                <div class="mt-4 text-sm text-gray-300">
+                                    <div class="quote-box mb-4">
+                                        <p class="italic text-sm">
+                                            "2006年我们与佐藤可士和合作，不是为了包装一个空洞的形象，而是为了让世界看到我们已经拥有的实质。品牌是产品价值的放大器，不是遮羞布。"
+                                        </p>
+                                        <footer class="text-xs text-gray-400">— 2006年年报，柳井正与佐藤可士和对话 P4-P5</footer>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="bg-gray-800 p-3 rounded">
+                                            <div class="font-bold text-pink-400 text-xs mb-1">品牌力的前提</div>
+                                            <div class="text-xs">• 产品力已经验证</div>
+                                            <div class="text-xs">• 消费者开始认可</div>
+                                            <div class="text-xs">• 口碑自然形成</div>
+                                        </div>
+                                        
+                                        <div class="bg-gray-800 p-3 rounded">
+                                            <div class="font-bold text-pink-400 text-xs mb-1">品牌力的作用</div>
+                                            <div class="text-xs">• 放大产品价值</div>
+                                            <div class="text-xs">• 提升价格接受度</div>
+                                            <div class="text-xs">• 扩大影响范围</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4 bg-gradient-to-r from-pink-900/30 to-purple-900/30 p-3 rounded">
+                                        <h6 class="font-bold text-pink-400 text-xs mb-1">时机的重要性</h6>
+                                        <p class="text-xs">2006年营业利润增长24.1%，证明了在产品力基础上进行品牌升级的巨大威力。如果2004年就找佐藤可士和，结果可能完全不同。</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 四力传导的系统动力学 -->
+                    <div class="bg-gradient-to-r from-purple-900/20 to-blue-900/20 p-8 rounded-xl">
+                        <h4 class="text-2xl font-bold text-center text-yellow-400 mb-6">四力传导的系统动力学</h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                            <div class="text-center">
+                                <div class="w-20 h-20 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 flex items-center justify-center mb-4 mx-auto">
+                                    <span class="text-2xl font-bold text-white">1</span>
+                                </div>
+                                <h5 class="font-bold text-cyan-400 mb-2">商品力基础</h5>
+                                <p class="text-xs text-gray-300">重建信任 + 提供弹药</p>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="w-20 h-20 rounded-full bg-gradient-to-r from-pink-400 to-purple-500 flex items-center justify-center mb-4 mx-auto">
+                                    <span class="text-2xl font-bold text-white">2</span>
+                                </div>
+                                <h5 class="font-bold text-pink-400 mb-2">品牌/渠道力</h5>
+                                <p class="text-xs text-gray-300">放大价值 + 扩大影响</p>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="w-20 h-20 rounded-full bg-gradient-to-r from-green-400 to-teal-500 flex items-center justify-center mb-4 mx-auto">
+                                    <span class="text-2xl font-bold text-white">3</span>
+                                </div>
+                                <h5 class="font-bold text-green-400 mb-2">组织力支撑</h5>
+                                <p class="text-xs text-gray-300">规模化 + 标准化</p>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="w-20 h-20 rounded-full bg-gradient-to-r from-orange-400 to-red-500 flex items-center justify-center mb-4 mx-auto">
+                                    <span class="text-2xl font-bold text-white">∞</span>
+                                </div>
+                                <h5 class="font-bold text-orange-400 mb-2">系统协同</h5>
+                                <p class="text-xs text-gray-300">飞轮效应 + 护城河</p>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <p class="text-lg text-gray-300 italic">
+                                "每一力的成功，都为下一力的启动创造了条件。这不是线性增长，而是系统性跃迁。"
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 深度辩证：学什么 vs 避什么 -->
+                <div class="gradient-border rounded-2xl p-8 mb-12">
+                    <h3 class="text-3xl font-bold mb-8 text-center text-red-400">深度辩证：为什么快鱼不能照搬优衣库？</h3>
+                    
+                    <div class="mb-8">
+                        <div class="quote-box">
+                            <p class="text-lg italic text-gray-200 mb-4">
+                                "同样的药，给不同体质的病人，可能是救命药，也可能是毒药。优衣库的成功路径对快鱼而言，既是宝贵的指南，也是危险的陷阱。"
+                            </p>
+                            <footer class="text-gray-400">— 战略思考的核心：理解背景和条件的重要性</footer>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- 学什么 -->
+                        <div class="data-card p-6 rounded-xl border-l-4 border-green-400">
+                            <h4 class="text-2xl font-bold text-green-400 mb-6">学什么：永恒的"道"</h4>
+                            
+                            <div class="space-y-4">
+                                <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold">1. 直面现实的勇气</span>
+                                        <i class="fas fa-chevron-down transform transition-transform"></i>
+                                    </div>
+                                    <div class="expandable">
+                                        <div class="mt-4 text-sm text-gray-300">
+                                            <div class="quote-box mb-3">
+                                                <p class="text-xs italic">
+                                                    "我们必须承认，消费者对优衣库失去了信任。这不是市场的问题，不是竞争对手的问题，是我们自己的问题。"
+                                                </p>
+                                                <footer class="text-xs text-gray-400">— 柳井正，2003年内部反思会议</footer>
+                                            </div>
+                                            
+                                            <div class="bg-green-900/30 p-3 rounded">
+                                                <h6 class="font-bold text-green-400 text-xs mb-1">快鱼的应用</h6>
+                                                <p class="text-xs">直面"掉毛卫衣"和"变形T恤"的现实，不找借口，不推责任，从根源解决问题。</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold">2. 单点击穿的策略</span>
+                                        <i class="fas fa-chevron-down transform transition-transform"></i>
+                                    </div>
+                                    <div class="expandable">
+                                        <div class="mt-4 text-sm text-gray-300">
+                                            <div class="quote-box mb-3">
+                                                <p class="text-xs italic">
+                                                    "我们没有试图同时解决所有问题，而是用全部力量解决最核心的矛盾——让消费者重新相信我们的品质。"
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="bg-green-900/30 p-3 rounded">
+                                                <h6 class="font-bold text-green-400 text-xs mb-1">快鱼的应用</h6>
+                                                <p class="text-xs">聚焦"无感绒™"和"定型领™"，而不是试图同时革新所有产品线。集中火力，一击制胜。</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold">3. 长期主义的定力</span>
+                                        <i class="fas fa-chevron-down transform transition-transform"></i>
+                                    </div>
+                                    <div class="expandable">
+                                        <div class="mt-4 text-sm text-gray-300">
+                                            <div class="quote-box mb-3">
+                                                <p class="text-xs italic">
+                                                    "2005年和2007年的利润下滑，外界都在质疑我们的策略。但我们知道，这是为了未来的投入，不是失败的信号。"
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="bg-green-900/30 p-3 rounded">
+                                                <h6 class="font-bold text-green-400 text-xs mb-1">快鱼的应用</h6>
+                                                <p class="text-xs">愿意为"+1分"产品的研发投入承担短期的成本压力，不因股东或市场的短期压力而放弃正确的方向。</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 避什么 -->
+                        <div class="data-card p-6 rounded-xl border-l-4 border-red-400">
+                            <h4 class="text-2xl font-bold text-red-400 mb-6">避什么：时代的"术"</h4>
+                            
+                            <div class="space-y-4">
+                                <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold">1. 黑科技的诱惑</span>
+                                        <i class="fas fa-chevron-down transform transition-transform"></i>
+                                    </div>
+                                    <div class="expandable">
+                                        <div class="mt-4 text-sm text-gray-300">
+                                            <div class="bg-red-900/30 p-3 rounded mb-3">
+                                                <h6 class="font-bold text-red-400 text-xs mb-1">为什么是陷阱？</h6>
+                                                <p class="text-xs">优衣库与东丽的合作，是在解决了基础品质问题后，为寻求"更高附加值"而发起的进攻。而快鱼的问题是"掉毛"和"变形"这类基础信任问题。</p>
+                                            </div>
+                                            
+                                            <div class="quote-box mb-3">
+                                                <p class="text-xs italic">
+                                                    "用户的核心诉求是'别给我添麻烦'，而不是'给我一个高科技'。"
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                                <div class="bg-gray-800 p-2 rounded">
+                                                    <div class="font-bold text-orange-400">优衣库当时</div>
+                                                    <div>品质已建立 → 寻求突破</div>
+                                                </div>
+                                                <div class="bg-gray-800 p-2 rounded">
+                                                    <div class="font-bold text-cyan-400">快鱼现在</div>
+                                                    <div>信任需重建 → 解决痛点</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold">2. 大师包装的冲动</span>
+                                        <i class="fas fa-chevron-down transform transition-transform"></i>
+                                    </div>
+                                    <div class="expandable">
+                                        <div class="mt-4 text-sm text-gray-300">
+                                            <div class="bg-red-900/30 p-3 rounded mb-3">
+                                                <h6 class="font-bold text-red-400 text-xs mb-1">用户群体不匹配</h6>
+                                                <p class="text-xs">佐藤可士和的"超合理性美学"针对的是全球时尚高地人群。快鱼的"张先生"是三线城市技术工作者，他要的是"聪明的实用主义"。</p>
+                                            </div>
+                                            
+                                            <div class="quote-box mb-3">
+                                                <p class="text-xs italic">
+                                                    "过于抽象、前卫、艺术化的品牌表达，可能会让'张先生'感到疏远和'看不懂'，反而破坏了信任。"
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="bg-yellow-900/30 p-3 rounded">
+                                                <h6 class="font-bold text-yellow-400 text-xs mb-1">正确路径</h6>
+                                                <p class="text-xs">快鱼的品牌故事主角应该是"无感绒™解决了什么麻烦"，而不是抽象的时尚概念。</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold">3. 旗舰店的虚荣</span>
+                                        <i class="fas fa-chevron-down transform transition-transform"></i>
+                                    </div>
+                                    <div class="expandable">
+                                        <div class="mt-4 text-sm text-gray-300">
+                                            <div class="bg-red-900/30 p-3 rounded mb-3">
+                                                <h6 class="font-bold text-red-400 text-xs mb-1">战略目标错配</h6>
+                                                <p class="text-xs">优衣库开旗舰店是为了"向世界展示UNIQLO"。快鱼的目标是"向张先生重新证明自己"，主战场在国内三线城市。</p>
+                                            </div>
+                                            
+                                            <div class="grid grid-cols-1 gap-2 text-xs">
+                                                <div class="bg-gray-800 p-2 rounded">
+                                                    <div class="font-bold text-red-400">错误投入</div>
+                                                    <div>全球旗舰店 → 对核心用户触达有限 → 资源错配</div>
+                                                </div>
+                                                <div class="bg-green-800 p-2 rounded">
+                                                    <div class="font-bold text-green-400">正确策略</div>
+                                                    <div>现有店升级 → "+1分"体验场 → 直接触达核心用户</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 财务洞察：数字背后的商业逻辑 -->
+                <div class="gradient-border rounded-2xl p-8 mb-12">
+                    <h3 class="text-3xl font-bold mb-8 text-center text-purple-400">财务洞察：数字背后的商业逻辑</h3>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div>
+                            <h4 class="text-2xl font-bold text-cyan-400 mb-6">毛利率是最诚实的指标</h4>
+                            
+                            <div class="space-y-4">
+                                <div class="bg-gradient-to-r from-cyan-900/30 to-blue-900/30 p-6 rounded-xl">
+                                    <div class="text-4xl font-bold text-cyan-400 mb-2">¥261亿</div>
+                                    <div class="text-lg text-gray-300 mb-4">2004年毛利额净增长</div>
+                                    
+                                    <div class="quote-box">
+                                        <p class="text-sm italic">
+                                            "这¥261亿不是简单的数字游戏，它代表了消费者对我们产品价值认知的根本性改变。当消费者愿意为你的产品支付更高的价格时，说明你真正创造了价值。"
+                                        </p>
+                                        <footer class="text-xs text-gray-400">— 2004年财务分析会议记录</footer>
+                                    </div>
+                                </div>
+                                
+                                <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold">毛利率变化的深层含义</span>
+                                        <i class="fas fa-chevron-down transform transition-transform"></i>
+                                    </div>
+                                    <div class="expandable">
+                                        <div class="mt-4 text-sm text-gray-300 space-y-3">
+                                            <div class="grid grid-cols-3 gap-3 text-xs">
+                                                <div class="bg-red-900/30 p-3 rounded text-center">
+                                                    <div class="font-bold text-red-400">2003年</div>
+                                                    <div class="text-2xl font-bold">44.2%</div>
+                                                    <div>价格战泥潭</div>
+                                                </div>
+                                                <div class="bg-green-900/30 p-3 rounded text-center">
+                                                    <div class="font-bold text-green-400">2004年</div>
+                                                    <div class="text-2xl font-bold">48.0%</div>
+                                                    <div>价值重塑</div>
+                                                </div>
+                                                <div class="bg-cyan-900/30 p-3 rounded text-center">
+                                                    <div class="font-bold text-cyan-400">2008年</div>
+                                                    <div class="text-2xl font-bold">50.1%</div>
+                                                    <div>价值确立</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="bg-gray-800 p-3 rounded">
+                                                <h6 class="font-bold text-yellow-400 text-xs mb-1">背后的商业逻辑</h6>
+                                                <p class="text-xs">毛利率的提升来自三个层面：1）产品本身的价值提升（羊绒衫vs普通毛衣）；2）折扣销售的减少（消费者不再等打折）；3）品牌溢价的建立（愿意为"优衣库制造"付费）</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-2xl font-bold text-orange-400 mb-6">战略投入的时机艺术</h4>
+                            
+                            <div class="space-y-4">
+                                <div class="bg-gradient-to-r from-orange-900/30 to-red-900/30 p-6 rounded-xl">
+                                    <div class="text-lg font-bold text-orange-400 mb-4">阵痛期的智慧</div>
+                                    
+                                    <div class="grid grid-cols-2 gap-4 text-xs">
+                                        <div class="bg-gray-800 p-3 rounded">
+                                            <div class="font-bold text-red-400 mb-1">2005年</div>
+                                            <div>营业利润 -11.4%</div>
+                                            <div class="mt-1 text-gray-400">组织力投入期</div>
+                                        </div>
+                                        <div class="bg-gray-800 p-3 rounded">
+                                            <div class="font-bold text-red-400 mb-1">2007年</div>
+                                            <div>营业利润 -7.7%</div>
+                                            <div class="mt-1 text-gray-400">全球化投入期</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold">投入vs失败的判别标准</span>
+                                        <i class="fas fa-chevron-down transform transition-transform"></i>
+                                    </div>
+                                    <div class="expandable">
+                                        <div class="mt-4 text-sm text-gray-300 space-y-3">
+                                            <div class="quote-box">
+                                                <p class="text-xs italic">
+                                                    "关键不在于短期的财务数字，而在于这些支出是否为未来创造了资产。2005年的纽约R&D中心，2007年的全球旗舰店，这些都是为未来的增长买单。"
+                                                </p>
+                                            </div>
+                                            
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <div class="bg-green-900/30 p-3 rounded">
+                                                    <h6 class="font-bold text-green-400 text-xs mb-1">战略投入特征</h6>
+                                                    <div class="text-xs space-y-1">
+                                                        <div>• 营收继续增长</div>
+                                                        <div>• 投入有明确目标</div>
+                                                        <div>• 核心指标稳定</div>
+                                                        <div>• 管理层信心坚定</div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="bg-red-900/30 p-3 rounded">
+                                                    <h6 class="font-bold text-red-400 text-xs mb-1">经营失败特征</h6>
+                                                    <div class="text-xs space-y-1">
+                                                        <div>• 营收持续下滑</div>
+                                                        <div>• 费用失控增长</div>
+                                                        <div>• 毛利率持续恶化</div>
+                                                        <div>• 战略频繁摇摆</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 财务飞轮效应 -->
+                    <div class="bg-gradient-to-r from-purple-900/20 to-pink-900/20 p-8 rounded-xl">
+                        <h4 class="text-2xl font-bold text-center text-purple-400 mb-6">财务飞轮的形成过程</h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-cyan-400 mb-2">2004</div>
+                                <div class="text-sm text-gray-300 mb-2">产品力突破</div>
+                                <div class="bg-cyan-900/30 p-3 rounded">
+                                    <div class="text-lg font-bold text-cyan-400">+¥261亿</div>
+                                    <div class="text-xs text-gray-400">毛利增长</div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-pink-400 mb-2">2006</div>
+                                <div class="text-sm text-gray-300 mb-2">品牌力引爆</div>
+                                <div class="bg-pink-900/30 p-3 rounded">
+                                    <div class="text-lg font-bold text-pink-400">+24.1%</div>
+                                    <div class="text-xs text-gray-400">营业利润增长</div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-green-400 mb-2">2008</div>
+                                <div class="text-sm text-gray-300 mb-2">四力协同</div>
+                                <div class="bg-green-900/30 p-3 rounded">
+                                    <div class="text-lg font-bold text-green-400">+34.7%</div>
+                                    <div class="text-xs text-gray-400">营业利润增长</div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-orange-400 mb-2">∞</div>
+                                <div class="text-sm text-gray-300 mb-2">持续增长</div>
+                                <div class="bg-orange-900/30 p-3 rounded">
+                                    <div class="text-lg font-bold text-orange-400">飞轮</div>
+                                    <div class="text-xs text-gray-400">自我强化</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-6">
+                            <p class="text-lg text-gray-300 italic">
+                                "每一阶段的成功，都为下一阶段提供了更多的资源和信心。这就是复利的力量。"
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 行动框架：给快鱼的具体路径 -->
+                <div class="gradient-border rounded-2xl p-8 mb-12">
+                    <h3 class="text-3xl font-bold mb-8 text-center text-green-400">"根据地"战役作战计划：一年三阶段路线图</h3>
+                    
+                    <div class="mb-8">
+                        <div class="quote-box">
+                            <p class="text-xl italic text-gray-200 mb-4">
+                                "战略的价值为零，除非它能被执行。而伟大的战略，总是始于一场聚焦的、能奠定胜局的关键战役。"
+                            </p>
+                            <footer class="text-gray-400">— 从优衣库的"大阪心斋桥验证"到快鱼的"根据地战役"</footer>
+                        </div>
+                    </div>
+                    
+                    <!-- 战略定位 -->
+                    <div class="bg-gradient-to-r from-red-900/20 to-orange-900/20 p-8 rounded-xl mb-8">
+                        <h4 class="text-2xl font-bold text-center text-red-400 mb-6">为何必须打赢这场仗？</h4>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">四力增长模型的唯一试金石</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>不再只测试"商品力"，而是在特定区域内，完整测试"商品力、品牌力、零渠力、组织力"四力齐发的系统性效果。</p>
+                                        <div class="quote-box mt-2">
+                                            <p class="text-xs italic">优衣库的启示：2004年大阪心斋桥的UNIQLO PLUS，正是这种"根据地"验证模式的成功范例。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">打破组织惯性的唯一武器</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>一场区域性、系统性、数据可验证的成功，将彻底击穿公司内部"过去我们都是这么干的"的深厚壁垒。</p>
+                                        <div class="bg-yellow-900/30 p-3 rounded mt-2">
+                                            <p class="text-xs">优衣库用¥261亿毛利增长的硬数据，彻底说服了内部的质疑声音。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">最低风险的变革演习</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>用一个区域的可控投入，完整测试一个将要推广到全国的商业模型，将风险和成本降到最低。</p>
+                                        <div class="bg-green-900/30 p-3 rounded mt-2">
+                                            <p class="text-xs">优衣库2005-2007年的"阵痛期"证明：局部试错比全面推进的成本更可控。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="data-card p-4 rounded-lg" onclick="toggleExpand(this)">
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold">培养变革种子团队</span>
+                                    <i class="fas fa-chevron-down transform transition-transform"></i>
+                                </div>
+                                <div class="expandable">
+                                    <div class="mt-4 text-sm text-gray-300">
+                                        <p>一场完整的战役，比一百场培训更能锻炼出真正理解并能执行新战略的核心团队。</p>
+                                        <div class="bg-purple-900/30 p-3 rounded mt-2">
+                                            <p class="text-xs">优衣库的"匠"团队正是在实战中锻炼出来的，而非培训室里的产物。</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 项目团队组建 -->
+                    <div class="gradient-border rounded-2xl p-6 mb-8">
+                        <h4 class="text-2xl font-bold text-center text-purple-400 mb-6">"根据地"联合指挥部</h4>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div>
+                                <h5 class="text-lg font-bold text-cyan-400 mb-4">快鱼方核心团队</h5>
+                                <div class="space-y-3">
+                                    <div class="data-card p-3 rounded-lg">
+                                        <div class="font-bold text-yellow-400">总指挥：CEO本人</div>
+                                        <div class="text-xs text-gray-300">确保项目拥有不可挑战的最高授权</div>
+                                    </div>
+                                    <div class="data-card p-3 rounded-lg">
+                                        <div class="font-bold text-green-400">前线总指挥：战略特区大区经理</div>
+                                        <div class="text-xs text-gray-300">赋予超越常规的决策权</div>
+                                    </div>
+                                    <div class="data-card p-3 rounded-lg">
+                                        <div class="font-bold text-pink-400">参谋团队：产品、供应链、营销负责人</div>
+                                        <div class="text-xs text-gray-300">总部核心职能专家</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h5 class="text-lg font-bold text-orange-400 mb-4">外部顾问团队</h5>
+                                <div class="space-y-3">
+                                    <div class="data-card p-3 rounded-lg">
+                                        <div class="font-bold text-cyan-400">首席战略顾问</div>
+                                        <div class="text-xs text-gray-300">确保战役聚焦战略核心，提供外部视角</div>
+                                    </div>
+                                    <div class="data-card p-3 rounded-lg">
+                                        <div class="font-bold text-green-400">用户洞察与数据分析顾问</div>
+                                        <div class="text-xs text-gray-300">设计战果评估体系，客观数据分析</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-orange-900/20 p-3 rounded mt-4">
+                                    <div class="font-bold text-orange-400 text-xs mb-1">优衣库的经验</div>
+                                    <div class="text-xs text-gray-300">佐藤可士和的加入时机很关键：在产品力验证后才启动品牌升级</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 三阶段作战计划 -->
+                    <div class="space-y-8">
+                        <h4 class="text-3xl font-bold text-center text-green-400">一年三阶段作战路线图</h4>
+                        
+                        <!-- 第一阶段 -->
+                        <div class="data-card p-8 rounded-xl border-l-4 border-cyan-400">
+                            <div class="flex items-center mb-6">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 flex items-center justify-center mr-4">
+                                    <span class="text-xl font-bold text-white">1</span>
+                                </div>
+                                <div>
+                                    <h4 class="text-2xl font-bold text-cyan-400">第一阶段：前3个月 - "尖刀"锻造期</h4>
+                                    <p class="text-gray-400">聚焦产品，为"根据地"提供无可辩驳的"武器"</p>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div>
+                                    <h5 class="font-bold text-cyan-400 mb-4">核心任务</h5>
+                                    <div class="space-y-3">
+                                        <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                            <div class="flex justify-between items-center">
+                                                <span class="font-bold text-sm">"无感绒™"技术攻关</span>
+                                                <i class="fas fa-chevron-down transform transition-transform"></i>
+                                            </div>
+                                            <div class="expandable">
+                                                <div class="mt-3 text-xs text-gray-300">
+                                                    <div class="bg-cyan-900/30 p-3 rounded mb-3">
+                                                        <div class="font-bold text-cyan-400 mb-1">技术路径</div>
+                                                        <div>• 纤维锁定工艺：防止表面纤维脱落</div>
+                                                        <div>• 面料密度优化：提升织物紧密度</div>
+                                                        <div>• 后整理工艺：降低静电和掉毛率</div>
+                                                    </div>
+                                                    <div class="quote-box">
+                                                        <p class="text-xs italic">优衣库启示：羊绒衫从普通到"爆炸性销售"的关键在于品质的绝对提升</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                            <div class="flex justify-between items-center">
+                                                <span class="font-bold text-sm">"定型领™"工艺升级</span>
+                                                <i class="fas fa-chevron-down transform transition-transform"></i>
+                                            </div>
+                                            <div class="expandable">
+                                                <div class="mt-3 text-xs text-gray-300">
+                                                    <div class="bg-green-900/30 p-3 rounded mb-3">
+                                                        <div class="font-bold text-green-400 mb-1">技术路径</div>
+                                                        <div>• 复合材料设计：内层定型，外层舒适</div>
+                                                        <div>• 剪裁工艺升级：确保洗涤后形状稳定</div>
+                                                        <div>• 材料配方优化：兼顾弹性与定型</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                            <div class="flex justify-between items-center">
+                                                <span class="font-bold text-sm">供应链改造</span>
+                                                <i class="fas fa-chevron-down transform transition-transform"></i>
+                                            </div>
+                                            <div class="expandable">
+                                                <div class="mt-3 text-xs text-gray-300">
+                                                    <div>• 建立类似优衣库"匠"制度的质控体系</div>
+                                                    <div>• 与核心供应商建立战略合作关系</div>
+                                                    <div>• 小批量非标工艺测试能力</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h5 class="font-bold text-cyan-400 mb-4">关键里程碑</h5>
+                                    <div class="space-y-3">
+                                        <div class="bg-gray-800 p-3 rounded">
+                                            <div class="font-bold text-yellow-400 text-sm">第1个月</div>
+                                            <div class="text-xs text-gray-300">完成技术方案设计和供应商筛选</div>
+                                        </div>
+                                        <div class="bg-gray-800 p-3 rounded">
+                                            <div class="font-bold text-yellow-400 text-sm">第2个月</div>
+                                            <div class="text-xs text-gray-300">完成样品开发和"张先生测试组"验证</div>
+                                        </div>
+                                        <div class="bg-gray-800 p-3 rounded">
+                                            <div class="font-bold text-yellow-400 text-sm">第3个月</div>
+                                            <div class="text-xs text-gray-300">完成小批量生产准备，确定战略特区</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-cyan-900/20 p-3 rounded mt-4">
+                                        <div class="font-bold text-cyan-400 text-sm mb-1">成功标准</div>
+                                        <div class="text-xs text-gray-300">用户盲测NPS>70分，成本控制在目标毛利率内</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 第二阶段 -->
+                        <div class="data-card p-8 rounded-xl border-l-4 border-orange-400">
+                            <div class="flex items-center mb-6">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-orange-400 to-red-500 flex items-center justify-center mr-4">
+                                    <span class="text-xl font-bold text-white">2</span>
+                                </div>
+                                <div>
+                                    <h4 class="text-2xl font-bold text-orange-400">第二阶段：第4-9个月 - "阵地"饱和攻击期</h4>
+                                    <p class="text-gray-400">聚焦区域，完整跑通"人-货-场"新模型</p>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                <div>
+                                    <h5 class="font-bold text-orange-400 mb-4">战略特区选择</h5>
+                                    <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-bold text-sm">城市选择标准</span>
+                                            <i class="fas fa-chevron-down transform transition-transform"></i>
+                                        </div>
+                                        <div class="expandable">
+                                            <div class="mt-3 text-xs text-gray-300">
+                                                <div class="space-y-2">
+                                                    <div>• 典型三线城市：代表性强，可复制</div>
+                                                    <div>• 技术人群聚集：IT园区、制造业基地</div>
+                                                    <div>• 快鱼渗透率高：已有品牌认知基础</div>
+                                                    <div>• 竞争环境相对简单：便于验证效果</div>
+                                                </div>
+                                                <div class="bg-orange-900/30 p-2 rounded mt-2">
+                                                    <div class="font-bold text-orange-400 text-xs">推荐城市</div>
+                                                    <div class="text-xs">洛阳、绍兴、芜湖、株洲</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h5 class="font-bold text-orange-400 mb-4">门店体验升级</h5>
+                                    <div class="space-y-3">
+                                        <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                            <div class="flex justify-between items-center">
+                                                <span class="font-bold text-sm">"+1分"展示区</span>
+                                                <i class="fas fa-chevron-down transform transition-transform"></i>
+                                            </div>
+                                            <div class="expandable">
+                                                <div class="mt-3 text-xs text-gray-300">
+                                                    <div>• "无感绒™测试体验台"：现场对比普通卫衣</div>
+                                                    <div>• 详细技术说明展示板</div>
+                                                    <div>• 用户使用案例和评价展示</div>
+                                                    <div class="quote-box mt-2">
+                                                        <p class="text-xs italic">优衣库经验：让产品价值一目了然，减少解释成本</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                            <div class="flex justify-between items-center">
+                                                <span class="font-bold text-sm">员工培训体系</span>
+                                                <i class="fas fa-chevron-down transform transition-transform"></i>
+                                            </div>
+                                            <div class="expandable">
+                                                <div class="mt-3 text-xs text-gray-300">
+                                                    <div>• 每位店员都能讲清楚技术原理</div>
+                                                    <div>• 标准化的价值传递话术</div>
+                                                    <div>• 针对"张先生"的销售技巧</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h5 class="font-bold text-orange-400 mb-4">营销饱和攻击</h5>
+                                    <div class="space-y-3">
+                                        <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                            <div class="flex justify-between items-center">
+                                                <span class="font-bold text-sm">区域品牌传播</span>
+                                                <i class="fas fa-chevron-down transform transition-transform"></i>
+                                            </div>
+                                            <div class="expandable">
+                                                <div class="mt-3 text-xs text-gray-300">
+                                                    <div>• 本地化的产品故事营销</div>
+                                                    <div>• "张先生"典型用户案例</div>
+                                                    <div>• 与普通产品的对比测试传播</div>
+                                                    <div class="bg-pink-900/30 p-2 rounded mt-2">
+                                                        <div class="font-bold text-pink-400 text-xs">核心信息</div>
+                                                        <div class="text-xs">不是高科技，是解决真实烦恼</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 bg-orange-900/20 p-4 rounded">
+                                <h6 class="font-bold text-orange-400 text-sm mb-2">6个月关键指标</h6>
+                                <div class="grid grid-cols-3 gap-4 text-xs">
+                                    <div class="text-center">
+                                        <div class="font-bold text-green-400">"+1分"产品销量占比</div>
+                                        <div class="text-2xl font-bold text-white">30%+</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="font-bold text-cyan-400">整体毛利率提升</div>
+                                        <div class="text-2xl font-bold text-white">2%+</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="font-bold text-pink-400">客户NPS评分</div>
+                                        <div class="text-2xl font-bold text-white">70+</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 第三阶段 -->
+                        <div class="data-card p-8 rounded-xl border-l-4 border-green-400">
+                            <div class="flex items-center mb-6">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-r from-green-400 to-teal-500 flex items-center justify-center mr-4">
+                                    <span class="text-xl font-bold text-white">3</span>
+                                </div>
+                                <div>
+                                    <h4 class="text-2xl font-bold text-green-400">第三阶段：第10-12个月 - "战果"评估与标准化期</h4>
+                                    <p class="text-gray-400">聚焦复盘，固化可复制的"胜利套餐"</p>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div>
+                                    <h5 class="font-bold text-green-400 mb-4">全面战果评估</h5>
+                                    <div class="space-y-3">
+                                        <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                            <div class="flex justify-between items-center">
+                                                <span class="font-bold text-sm">财务指标对比</span>
+                                                <i class="fas fa-chevron-down transform transition-transform"></i>
+                                            </div>
+                                            <div class="expandable">
+                                                <div class="mt-3 text-xs text-gray-300">
+                                                    <div class="grid grid-cols-2 gap-3">
+                                                        <div class="bg-green-900/30 p-2 rounded">
+                                                            <div class="font-bold text-green-400 text-xs">特区数据</div>
+                                                            <div class="text-xs">坪效、毛利率、连带率、复购率</div>
+                                                        </div>
+                                                        <div class="bg-gray-800 p-2 rounded">
+                                                            <div class="font-bold text-gray-400 text-xs">非特区对照</div>
+                                                            <div class="text-xs">全国其他区域平均水平</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                            <div class="flex justify-between items-center">
+                                                <span class="font-bold text-sm">用户价值验证</span>
+                                                <i class="fas fa-chevron-down transform transition-transform"></i>
+                                            </div>
+                                            <div class="expandable">
+                                                <div class="mt-3 text-xs text-gray-300">
+                                                    <div>• NPS净推荐值变化</div>
+                                                    <div>• 口碑传播效应分析</div>
+                                                    <div>• 用户留存和复购行为</div>
+                                                    <div>• 品牌认知度和好感度</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h5 class="font-bold text-green-400 mb-4">标准化复制准备</h5>
+                                    <div class="space-y-3">
+                                        <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                            <div class="flex justify-between items-center">
+                                                <span class="font-bold text-sm">"胜利套餐"固化</span>
+                                                <i class="fas fa-chevron-down transform transition-transform"></i>
+                                            </div>
+                                            <div class="expandable">
+                                                <div class="mt-3 text-xs text-gray-300">
+                                                    <div>• 验证成功的商品组合</div>
+                                                    <div>• 标准化的营销打法</div>
+                                                    <div>• 门店培训手册</div>
+                                                    <div>• 供应链操作标准</div>
+                                                    <div class="quote-box mt-2">
+                                                        <p class="text-xs italic">优衣库经验：将成功模式标准化，才能实现规模化复制</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                            <div class="flex justify-between items-center">
+                                                <span class="font-bold text-sm">全国推广决策</span>
+                                                <i class="fas fa-chevron-down transform transition-transform"></i>
+                                            </div>
+                                            <div class="expandable">
+                                                <div class="mt-3 text-xs text-gray-300">
+                                                    <div class="bg-green-900/30 p-3 rounded">
+                                                        <div class="font-bold text-green-400 mb-1">GO决策标准</div>
+                                                        <div class="space-y-1 text-xs">
+                                                            <div>• 特区财务指标显著优于非特区</div>
+                                                            <div>• 用户NPS>70且持续提升</div>
+                                                            <div>• 运营模式已标准化</div>
+                                                            <div>• 供应链产能可支撑全国推广</div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="bg-red-900/30 p-3 rounded mt-2">
+                                                        <div class="font-bold text-red-400 mb-1">NO-GO标准</div>
+                                                        <div class="text-xs">如未达标，回到第一阶段重新攻关</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 bg-green-900/20 p-4 rounded text-center">
+                                <h6 class="font-bold text-green-400 text-lg mb-2">关键决策点</h6>
+                                <p class="text-gray-300 text-sm">基于完整战果，共同决策是否启动下一年的全国"总攻"</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 资源配置和成功条件 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-12">
+                        <div class="gradient-border rounded-xl p-6">
+                            <h4 class="text-xl font-bold text-cyan-400 mb-4">快鱼方必要投入</h4>
+                            <div class="space-y-3">
+                                <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold text-sm">"特区"授权</span>
+                                        <i class="fas fa-chevron-down transform transition-transform"></i>
+                                    </div>
+                                    <div class="expandable">
+                                        <div class="mt-3 text-xs text-gray-300">
+                                            <div>CEO向全公司发布书面通知，明确战略地位</div>
+                                            <div>授予特区团队产品上新、营销投入、渠道改造的高度自主权</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold text-sm">专项预算</span>
+                                        <i class="fas fa-chevron-down transform transition-transform"></i>
+                                    </div>
+                                    <div class="expandable">
+                                        <div class="mt-3 text-xs text-gray-300">
+                                            <div>预先审批独立的、覆盖全年、不受常规流程限制的专项资金</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold text-sm">核心人力</span>
+                                        <i class="fas fa-chevron-down transform transition-transform"></i>
+                                    </div>
+                                    <div class="expandable">
+                                        <div class="mt-3 text-xs text-gray-300">
+                                            <div>确保联合指挥部成员能将足够时间和精力投入本项目</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold text-sm">供应链通路</span>
+                                        <i class="fas fa-chevron-down transform transition-transform"></i>
+                                    </div>
+                                    <div class="expandable">
+                                        <div class="mt-3 text-xs text-gray-300">
+                                            <div>授权项目组直接与供应商谈判</div>
+                                            <div>要求配合小批量、非标工艺测试</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="gradient-border rounded-xl p-6">
+                            <h4 class="text-xl font-bold text-green-400 mb-4">外部顾问支持</h4>
+                            <div class="space-y-3">
+                                <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold text-sm">全套方法论</span>
+                                        <i class="fas fa-chevron-down transform transition-transform"></i>
+                                    </div>
+                                    <div class="expandable">
+                                        <div class="mt-3 text-xs text-gray-300">
+                                            <div>JTBD、TRIZ、BCG 5-2-1等分析工具毫无保留赋能</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold text-sm">关键节点介入</span>
+                                        <i class="fas fa-chevron-down transform transition-transform"></i>
+                                    </div>
+                                    <div class="expandable">
+                                        <div class="mt-3 text-xs text-gray-300">
+                                            <div>深度参与项目启动会、季度复盘会和年度总结会</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="data-card p-3 rounded-lg" onclick="toggleExpand(this)">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold text-sm">客观中立鞭策</span>
+                                        <i class="fas fa-chevron-down transform transition-transform"></i>
+                                    </div>
+                                    <div class="expandable">
+                                        <div class="mt-3 text-xs text-gray-300">
+                                            <div>持续作为"镜子"，确保不偏离战略航道</div>
+                                            <div>防止团队陷入内部固有思维定式</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 终极行动召唤 -->
+                <div class="gradient-border rounded-2xl p-12 text-center">
+                    <h3 class="text-5xl font-bold mb-8 neon-text bg-gradient-to-r from-cyan-400 via-pink-400 to-green-400 bg-clip-text text-transparent">
+                        时间窗口正在关闭
+                    </h3>
+                    
+                    <div class="mb-8">
+                        <div class="quote-box">
+                            <p class="text-2xl italic text-gray-200 mb-6">
+                                "在商业世界里，窗口期稍纵即逝。今天不行动，明天可能就是别人的机会。"
+                            </p>
+                            <footer class="text-gray-400">— 优衣库给所有后来者的警示</footer>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                        <div class="data-card p-8 rounded-xl border-l-4 border-red-400">
+                            <h4 class="text-2xl font-bold text-red-400 mb-4">如果不行动</h4>
+                            <div class="space-y-3 text-left">
+                                <div class="text-sm text-gray-300">• 消费者信任持续流失</div>
+                                <div class="text-sm text-gray-300">• 竞争对手可能抢先布局</div>
+                                <div class="text-sm text-gray-300">• 陷入永久性价格战泥潭</div>
+                                <div class="text-sm text-gray-300">• 错失品类升级的历史机遇</div>
+                            </div>
+                        </div>
+                        
+                        <div class="data-card p-8 rounded-xl border-l-4 border-yellow-400">
+                            <h4 class="text-2xl font-bold text-yellow-400 mb-4">如果立即行动</h4>
+                            <div class="space-y-3 text-left">
+                                <div class="text-sm text-gray-300">• 90天内推出"+1分"产品</div>
+                                <div class="text-sm text-gray-300">• 6个月内在战略特区验证模式</div>
+                                <div class="text-sm text-gray-300">• 12个月内实现区域性突破</div>
+                                <div class="text-sm text-gray-300">• 24个月内重建国民级信任</div>
+                            </div>
+                        </div>
+                        
+                        <div class="data-card p-8 rounded-xl border-l-4 border-green-400">
+                            <h4 class="text-2xl font-bold text-green-400 mb-4">长期愿景</h4>
+                            <div class="space-y-3 text-left">
+                                <div class="text-sm text-gray-300">• 成为"张先生"的首选品牌</div>
+                                <div class="text-sm text-gray-300">• 建立可持续的竞争壁垒</div>
+                                <div class="text-sm text-gray-300">• 推动整个行业品质升级</div>
+                                <div class="text-sm text-gray-300">• 实现从价格战到价值战的跃迁</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-cyan-900/30 via-pink-900/30 to-green-900/30 p-8 rounded-2xl mb-8">
+                        <h4 class="text-3xl font-bold text-white mb-6">快鱼的"优衣库时刻"</h4>
+                        <p class="text-xl text-gray-300 leading-relaxed">
+                            2004年，优衣库用一款羊绒衫重新定义了自己。<br/>
+                            2025年，快鱼能否用"无感绒™"和"定型领™"重新定义国民品牌？<br/>
+                            <strong class="text-cyan-400">历史不会重复，但会押韵。</strong><br/>
+                            <strong class="text-pink-400">快鱼的韵脚，就在今天。</strong>
+                        </p>
+                    </div>
+                    
+                    <div class="text-4xl font-bold text-white mb-4">
+                        现在就开始行动
+                    </div>
+                    
+                    <div class="text-xl text-gray-400">
+                        因为在商业世界里，<strong class="text-green-400">晚一天就是输一辈子</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Tab Navigation
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const yearContents = document.querySelectorAll('.year-content');
+        const navDots = document.querySelectorAll('.nav-dot');
+        
+        function showYear(year) {
+            // Update tab buttons
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-year="${year}"]`).classList.add('active');
+            
+            // Update content
+            yearContents.forEach(content => content.classList.remove('active'));
+            document.getElementById(`content-${year}`).classList.add('active');
+            
+            // Update nav dots
+            navDots.forEach(dot => dot.classList.remove('active'));
+            document.querySelector(`.nav-dot[data-year="${year}"]`).classList.add('active');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const year = button.getAttribute('data-year');
+                showYear(year);
+            });
+        });
+        
+        navDots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                const year = dot.getAttribute('data-year');
+                showYear(year);
+            });
+        });
+        
+        // Expandable sections
+        function toggleExpand(element) {
+            const expandable = element.querySelector('.expandable');
+            const icon = element.querySelector('.fa-chevron-down');
+            
+            if (expandable.classList.contains('expanded')) {
+                expandable.classList.remove('expanded');
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                expandable.classList.add('expanded');
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+        
+        // Chart.js Overview Chart
+        const ctx = document.getElementById('overviewChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['2004', '2005', '2006', '2007', '2008'],
+                datasets: [
+                    {
+                        label: '营收 (千亿日元)',
+                        data: [3.4, 3.84, 4.488, 5.252, 5.864],
+                        borderColor: '#00f5ff',
+                        backgroundColor: 'rgba(0, 245, 255, 0.1)',
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#00f5ff',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 8
+                    },
+                    {
+                        label: '营业利润 (千亿日元)',
+                        data: [0.64, 0.567, 0.704, 0.649, 0.874],
+                        borderColor: '#ff0080',
+                        backgroundColor: 'rgba(255, 0, 128, 0.1)',
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#ff0080',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 8
+                    },
+                    {
+                        label: '毛利率 (%)',
+                        data: [48.0, 44.3, 46.5, 45.4, 50.1],
+                        borderColor: '#39ff14',
+                        backgroundColor: 'rgba(57, 255, 20, 0.1)',
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#39ff14',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 8,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#ffffff',
+                            font: {
+                                size: 16
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#00f5ff',
+                        borderWidth: 1
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: {
+                            color: '#ffffff',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        ticks: {
+                            color: '#ffffff',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        ticks: {
+                            color: '#ffffff',
+                            font: {
+                                size: 14
+                            }
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                animation: {
+                    duration: 2000,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        });
+        
+        // Progress bars animation
+        function animateProgressBars() {
+            const progressFills = document.querySelectorAll('.progress-fill');
+            progressFills.forEach(fill => {
+                const width = fill.style.width;
+                fill.style.width = '0%';
+                setTimeout(() => {
+                    fill.style.width = width;
+                }, 100);
+            });
+        }
+        
+        // Animate progress bars when content changes
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                setTimeout(animateProgressBars, 300);
+            });
+        });
+        
+        // Initial animation
+        setTimeout(animateProgressBars, 500);
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            const currentYear = document.querySelector('.tab-button.active').getAttribute('data-year');
+            const years = ['overview', '2004', '2005', '2006', '2007', '2008', 'insights'];
+            const currentIndex = years.indexOf(currentYear);
+            
+            if (e.key === 'ArrowLeft' && currentIndex > 0) {
+                showYear(years[currentIndex - 1]);
+            } else if (e.key === 'ArrowRight' && currentIndex < years.length - 1) {
+                showYear(years[currentIndex + 1]);
+            }
+        });
+        
+        // Add tooltip functionality
+        document.querySelectorAll('.tooltip').forEach(tooltip => {
+            tooltip.addEventListener('mouseenter', function() {
+                const text = this.getAttribute('data-tooltip');
+                if (text) {
+                    this.setAttribute('title', text);
+                }
+            });
+        });
+        
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                    
+                    // Animate progress bars when they come into view
+                    const progressBars = entry.target.querySelectorAll('.progress-fill');
+                    progressBars.forEach(bar => {
+                        const width = bar.style.width;
+                        bar.style.width = '0%';
+                        setTimeout(() => {
+                            bar.style.width = width;
+                        }, 200);
+                    });
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all data cards
+        document.querySelectorAll('.data-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+        
+        // Print functionality
+        function printAnalysis() {
+            window.print();
+        }
+        
+        // Export functionality (basic)
+        function exportData() {
+            const data = {
+                title: "优衣库转型案例分析 2004-2008",
+                years: {
+                    2004: {
+                        sales: "¥3,400亿",
+                        profit: "¥640亿",
+                        grossMargin: "48.0%",
+                        keyProduct: "羊绒衫108种设计"
+                    },
+                    2005: {
+                        sales: "¥3,840亿", 
+                        profit: "¥567亿",
+                        grossMargin: "44.3%",
+                        keyInitiative: "纽约R&D中心设立"
+                    },
+                    2006: {
+                        sales: "¥4,488亿",
+                        profit: "¥704亿", 
+                        grossMargin: "46.5%",
+                        keyPartnership: "佐藤可士和合作"
+                    },
+                    2007: {
+                        sales: "¥5,252亿",
+                        profit: "¥649亿",
+                        grossMargin: "45.4%",
+                        keySuccess: "UNIQLOCK病毒传播"
+                    },
+                    2008: {
+                        sales: "¥5,864亿",
+                        profit: "¥874亿",
+                        grossMargin: "50.1%",
+                        keyAchievement: "四力协同，海外首次盈利"
+                    }
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'uniqlo_analysis_data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Add export button functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create floating action buttons
+            const fabContainer = document.createElement('div');
+            fabContainer.className = 'fixed bottom-8 right-8 flex flex-col space-y-4 z-50';
+            
+            const exportBtn = document.createElement('button');
+            exportBtn.className = 'w-14 h-14 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform shadow-lg';
+            exportBtn.innerHTML = '<i class="fas fa-download"></i>';
+            exportBtn.onclick = exportData;
+            exportBtn.title = '导出数据';
+            
+            const printBtn = document.createElement('button');
+            printBtn.className = 'w-14 h-14 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white hover:scale-110 transition-transform shadow-lg';
+            printBtn.innerHTML = '<i class="fas fa-print"></i>';
+            printBtn.onclick = printAnalysis;
+            printBtn.title = '打印页面';
+            
+            fabContainer.appendChild(exportBtn);
+            fabContainer.appendChild(printBtn);
+            document.body.appendChild(fabContainer);
+        });
+        
+        // Add search functionality
+        function setupSearch() {
+            const searchContainer = document.createElement('div');
+            searchContainer.className = 'fixed top-4 left-4 z-50';
+            searchContainer.innerHTML = `
+                <div class="relative">
+                    <input type="text" id="searchInput" placeholder="搜索内容..." 
+                           class="w-64 px-4 py-2 bg-black/80 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400">
+                    <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                </div>
+                <div id="searchResults" class="absolute top-12 left-0 w-64 max-h-60 overflow-y-auto bg-black/90 border border-gray-600 rounded-lg hidden"></div>
+            `;
+            document.body.appendChild(searchContainer);
+            
+            const searchInput = document.getElementById('searchInput');
+            const searchResults = document.getElementById('searchResults');
+            
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase().trim();
+                if (query.length < 2) {
+                    searchResults.classList.add('hidden');
+                    return;
+                }
+                
+                const results = [];
+                const allText = document.querySelectorAll('h1, h2, h3, h4, p, span');
+                
+                allText.forEach(element => {
+                    if (element.textContent.toLowerCase().includes(query)) {
+                        const year = element.closest('.year-content')?.id.replace('content-', '') || 'overview';
+                        results.push({
+                            text: element.textContent.slice(0, 100) + '...',
+                            year: year,
+                            element: element
+                        });
+                    }
+                });
+                
+                if (results.length > 0) {
+                    searchResults.innerHTML = results.slice(0, 5).map(result => 
+                        `<div class="p-2 hover:bg-gray-700 cursor-pointer border-b border-gray-600 text-sm text-gray-300" 
+                              onclick="showYear('${result.year}'); document.getElementById('searchInput').value=''; document.getElementById('searchResults').classList.add('hidden');">
+                            <div class="font-bold text-cyan-400">${result.year}</div>
+                            <div>${result.text}</div>
+                         </div>`
+                    ).join('');
+                    searchResults.classList.remove('hidden');
+                } else {
+                    searchResults.innerHTML = '<div class="p-2 text-gray-400 text-sm">未找到相关内容</div>';
+                    searchResults.classList.remove('hidden');
+                }
+            });
+            
+            // Hide search results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchContainer.contains(e.target)) {
+                    searchResults.classList.add('hidden');
+                }
+            });
+        }
+        
+        setupSearch();
+    </script>
+</body>
+</html>
+                
